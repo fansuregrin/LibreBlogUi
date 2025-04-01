@@ -29,16 +29,16 @@
     <el-pagination 
       class="pagination-area"
       background
-      v-model:size="props.tablePagintion.size"
-      v-model:pager-count="props.tablePagintion.pagerCount"
+      v-model:size="tablePagintion.size"
+      v-model:pager-count="tablePagintion.pagerCount"
       hide-on-single-page
       layout="prev,pager,next,jumper,total,sizes"
-      v-model:current-page="props.tablePagintion.page"
-      v-model:page-size="props.tablePagintion.pageSize"
-      :total="props.tablePagintion.total"
+      v-model:current-page="tablePagintion.page"
+      v-model:page-size="tablePagintion.pageSize"
+      :total="tablePagintion.total"
       :page-sizes="[5,10,20,30]"
-      @current-change="props.onPageChange"
-      @size-change="props.onSizeChange"
+      @current-change="onPageChange"
+      @size-change="onSizeChange"
     />
   </div>
   <el-dialog v-model="dialog.visible" :title="dialog.title" fullscreen>
@@ -50,9 +50,10 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, reactive, watch, onBeforeMount } from 'vue'
 import { Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useWindowSize } from '@vueuse/core'
 import { AxiosError } from 'axios'
 import { PaginationSetting } from '@/utils/pagination'
 import { menuSelfListService } from '@/api/menu'
@@ -61,16 +62,15 @@ const props = defineProps({
   name: String,
   menuCode: String,
   tableData: Array,
-  tablePagintion: PaginationSetting,
-  onPageChange: Function,
-  onSizeChange: Function,
+  total: Number,
   item: Object,
   getItems: Function,
   getItem: Function,
-  clearItem: Function,
   addItem: Function,
   updateItem: Function,
-  deleteItems: Function
+  deleteItems: Function,
+  onCreate: Function,
+  onUpdate: Function
 })
 
 const table = ref()
@@ -82,7 +82,6 @@ const dialog = ref({
   visible: false
 })
 const selectedItemIds = ref([])
-
 const menus = ref({
   list: false,
   get: false,
@@ -90,6 +89,21 @@ const menus = ref({
   update: false,
   delete: false,
 })
+const tablePagintion = reactive(new PaginationSetting(1, 10, 0, 'default', 7))
+
+const { width } = useWindowSize()
+
+const setPagination = width => {
+  if (width < 768) {
+    tablePagintion.size = 'small'
+    tablePagintion.pagerCount = 5
+  } else {
+    tablePagintion.size = 'default'
+    tablePagintion.pagerCount = 7
+  }
+}
+
+watch(width, setPagination)
 
 const setupMenus = async () => {
   let code = props.menuCode
@@ -102,6 +116,23 @@ const setupMenus = async () => {
     menus.value.update = menus.value.update || (m.code === `${code}:update`)
     menus.value.delete = menus.value.delete || (m.code === `${code}:delete`)
   }
+}
+
+const getItems = async () => {
+  let params = {
+    page: tablePagintion.page,
+    pageSize: tablePagintion.pageSize
+  }  
+  await props.getItems(params)
+  tablePagintion.total = props.total
+}
+
+const onPageChange = async () => {
+  await getArticles()
+}
+
+const onSizeChange = async () => {
+  await getArticles()
 }
 
 const onSelectionChange = (rows) => {
@@ -139,7 +170,7 @@ const handleCreate = () => {
   dialog.value.visible = false
   dialog.value.title = `新增${props.name}`
   dialog.value.type = 'create'
-  props.clearItem()
+  props.onCreate()
   dialog.value.visible = true
   itemLoading.value = false
 }
@@ -149,7 +180,7 @@ const handleEdit = async (index, row) => {
   dialog.value.title = `编辑${props.name}`
   dialog.value.type = 'edit'
   dialog.value.visible = true
-  props.clearItem()
+  props.onUpdate()
   itemLoading.value = true
   await props.getItem(row.id)
   itemLoading.value = false
@@ -187,15 +218,16 @@ const submitItem = async () => {
   dialog.value.visible = false
 
   tableLoading.value = true
-  await props.getItems()
+  await getItems()
   tableLoading.value = false
 }
 
 onBeforeMount(async () => {
+  setPagination(width.value)
   await setupMenus()
   if (menus.value.list) {
     tableLoading.value = true
-    await props.getItems()
+    await getItems()
     tableLoading.value = false
   } else {
     ElMessageBox.alert(`没有权限获取${props.name}列表`, '温馨提示', { type: 'warning' })

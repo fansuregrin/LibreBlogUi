@@ -1,12 +1,10 @@
 <template>
   <Manage
     name="文章" menu-code="articleMgr" 
-    :table-data="articles" :table-pagintion="articlePagintion"
-    :item="article" :clear-item="clearArticle" :get-items="getArticles" 
-    :get-item="getArticle" :delete-items="deleteArticles" :update-item="updateArticle"
-    :add-item="addArticle"
-    :on-page-change="onPageChangeArticle"
-    :on-size-change="onSizeChangeArticle"
+    :table-data="articles" :total="total" :item="article" 
+    :on-create="onCreate" :on-update="onUpdate"
+    :get-items="getArticles" :get-item="getArticle" :delete-items="deleteArticles" 
+    :update-item="updateArticle" :add-item="addArticle"
   >
     <template #tableColumns>
       <el-table-column prop="title" label="标题"/>
@@ -102,8 +100,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onBeforeMount } from 'vue'
-import { useWindowSize } from '@vueuse/core'
+import { ref, reactive } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import {
@@ -116,39 +113,23 @@ import { userListService } from '@/api/user'
 import Manage from '@/components/Manage.vue'
 import { PaginationSetting } from '@/utils/pagination'
 import { formatDateTime } from '@/utils/date'
+import { useUserStore } from '@/stores/user'
 
 const articles = ref([])
+const total = ref(0)
 const article = ref({})
-const articlePagintion = reactive(new PaginationSetting(1, 10, 0, 'default', 7))
 const authors = ref([])
 const authorPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
 const categories = ref([])
 const categoryPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
 const tags = ref([])
 const tagPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
+const userStore = useUserStore()
 
-const { width } = useWindowSize()
-
-const setPagination = width => {
-  if (width < 768) {
-    articlePagintion.size = 'small'
-    articlePagintion.pagerCount = 5
-  } else {
-    articlePagintion.size = 'default'
-    articlePagintion.pagerCount = 7
-  }
-}
-
-watch(width, setPagination)
-
-const getArticles = async () => {
-  let params = {
-    page: articlePagintion.page,
-    pageSize: articlePagintion.pageSize
-  }
+const getArticles = async (params) => {
   let result = await articleListAdminService(params)
   articles.value = result.data.items
-  articlePagintion.total = result.data.total
+  total.value = result.data.total
 }
 
 const getArticle = async (id) => {
@@ -171,12 +152,15 @@ const deleteArticles = async (ids) => {
   await articleDeleteService(ids)
 }
 
-const onPageChangeArticle = async (page) => {
-  await getArticles()
+const onCreate = () => {
+  console.log(userStore.user)
+  article.value = {}
+  article.value.authorId = userStore.user.id
+  authors.value = [{ id: userStore.user.id, realname: userStore.user.realname }]
 }
 
-const onSizeChangeArticle = async (size) => {
-  await getArticles()
+const onUpdate = () => {
+  article.value = {}
 }
 
 const getAuthors = async () => {
@@ -244,13 +228,5 @@ const onTagSelectVisibleChange = async (visible) => {
     tagPagination.page = 1
   }
 }
-
-const clearArticle = () => {
-  article.value = {}
-}
-
-onBeforeMount(() => {
-  setPagination(width.value)
-})
 
 </script>
