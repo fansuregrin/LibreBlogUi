@@ -31,8 +31,8 @@
       <div class="header-content" v-else>
         <el-menu 
           class="nav-menu"
-          router
           mode="horizontal" 
+          router
           :default-active="activeMenu"
         >
           <el-menu-item index="/">首页</el-menu-item>
@@ -66,15 +66,15 @@
         </div>
       </div>
     </el-header>
-    <el-drawer v-model="sideBar" direction="ltr" :with-header="false">
+    <el-drawer v-model="sideBar" size="50%" direction="ltr" :with-header="false">
       <el-menu 
         class="nav-menu"
-        router
+        @select="handleMenuSelect"
         mode="vertical" 
         :default-active="activeMenu"
       >
         <el-menu-item index="/">首页</el-menu-item>
-        <el-sub-menu index="/category">
+        <el-sub-menu index="category">
           <template #title>分类</template>
           <el-menu-item 
             v-for="category in categoryList"
@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, More, User, SwitchButton, Setting } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
@@ -107,7 +107,7 @@ const router = useRouter()
 const tokenStore = useTokenStore()
 const userStore = useUserStore()
 const activeMenu = ref(route.fullPath)
-const mobileHeader = ref(window.innerWidth <= 768)
+const mobileHeader = ref(false)
 const sideBar = ref(false)
 const { width } = useWindowSize()
 
@@ -122,13 +122,20 @@ const getAllCategories = async () => {
   categoryList.value = result.data
 }
 
-watch(width, (newVal) => {
-  if (newVal <= 768) {
+const handleMenuSelect = (index, indexPath) => {
+  sideBar.value = false
+  router.push(index)
+}
+
+const setMobileHeader = (width) => {
+  if (width < 768) {
     mobileHeader.value = true
   } else {
     mobileHeader.value = false
   }
-})
+}
+
+watch(width, setMobileHeader)
 
 const checkLogin = () => {
   if (tokenStore.token) {
@@ -148,7 +155,8 @@ const handleCommand = (command) => {
   }
 }
 
-onMounted(() => {
+onBeforeMount(() => {
+  setMobileHeader(width.value)
   getAllCategories()
   checkLogin()
 })

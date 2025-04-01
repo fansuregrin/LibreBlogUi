@@ -1,19 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Auth from '@/views/Auth.vue'
-import Layout from '@/views/Layout.vue'
-import ArticleList from '@/views/article/ArticleList.vue'
-import ArticleListByCategory from '@/views/article/ArticleListByCategory.vue'
-import ArticleListByUser from '@/views/article/ArticleListByUser.vue'
-import ArticleListByTag from '@/views/article/ArticleListByTag.vue'
-import Article from '@/views/article/Article.vue'
+import FrontLayout from '@/views/front/Layout.vue'
+import ArticleList from '@/views/front/ArticleList.vue'
+import ArticleListByCategory from '@/views/front/ArticleListByCategory.vue'
+import ArticleListByUser from '@/views/front/ArticleListByUser.vue'
+import ArticleListByTag from '@/views/front/ArticleListByTag.vue'
+import Article from '@/views/front/Article.vue'
 import AdminLayout from '@/views/admin/Layout.vue'
 import AdminIndex from '@/views/admin/Welcome.vue'
-import AdminArticle from '@/views/admin/Article.vue'
+import ManageArticle from '@/views/admin/Article.vue'
+import ManageCategory from '@/views/admin/Category.vue'
 
 const routes = [
   { path: '/auth', component: Auth },
   {
-    path: '/', component: Layout, children: [
+    path: '/', component: FrontLayout, children: [
       { path: '/', component: ArticleList },
       { path: '/category/:slug', component: ArticleListByCategory },
       { path: '/user/:id', component: ArticleListByUser },
@@ -24,7 +25,8 @@ const routes = [
   {
     path: '/admin', component: AdminLayout, children: [
       { path: '/admin', component: AdminIndex },
-      { path: '/admin/article', component: AdminArticle }
+      { path: '/admin/article', component: ManageArticle },
+      { path: '/admin/category', component: ManageCategory }
     ]
   }
 ]

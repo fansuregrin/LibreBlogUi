@@ -1,7 +1,9 @@
 <template>
-  <div class="article-container" v-if="!loading">
+  <div class="article-container">
     <div v-if="title" class="title">{{ title }}</div>
-    <el-card class="article-card" v-for="article in articles" :key="article.id">
+    <el-card class="article-card" v-loading="loading" v-for="article in articles" 
+      :key="article.id"
+    >
       <template #header>
         <div class="article-header">
           <router-link :to="`/article/${article.id}`" class="link article-title">
@@ -46,12 +48,14 @@
     <el-pagination
       background
       layout="prev, pager, next, jumper, sizes, total"
-      v-model:current-page="pagination.currentPage"
+      v-model:current-page="pagination.page"
       v-model:page-size="pagination.pageSize"
+      hide-on-single-page
       :total="pagination.total"
+      v-model:size="pagination.size"
       :page-sizes="[5, 10, 15, 20]"
-      :pager-count="5"
-      @current-change="onCurrentPageChange"
+      v-model:pager-count="pagination.pagerCount"
+      @current-change="onPageChange"
       @size-change="onPageSizeChange"
       class="pagination"
     />
@@ -60,62 +64,54 @@
 
 <script setup>
 import '@/assets/main.css'
-import { ref, onMounted, watch } from 'vue'
+import { ref, reactive, onBeforeMount, watch } from 'vue'
 import { User, Clock, Reading, ChatDotRound, Star } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import { articleListService } from '@/api/article'
+import { PaginationSetting } from '@/utils/pagination'
 import { formatDateTime } from '@/utils/date'
 
 const props = defineProps({
-  getArticles: {
-    type: Function,
-    required: true
-  },
   title: {
     type: String,
     default: ''
-  }
+  },
+  queryParams: Object
 })
 
 const router = useRouter()
 const loading = ref(true)
 const articles = ref([])
+const pagination = reactive(new PaginationSetting(1, 10, 0, 'default', 5))
 
-const pagination = ref({
-  currentPage: 1,
-  pageSize: 5,
-  total: 0
-})
-
-const onCurrentPageChange = (page) => {
-  pagination.value.currentPage = page
-  getArticlesPage()
+const onPageChange = () => {
+  getArticles()
 }
 
-const onPageSizeChange = (newSize) => {
-  pagination.value.pageSize = newSize
-  pagination.value.currentPage = 1
-  getArticlesPage()
+const onPageSizeChange = () => {
+  pagination.page = 1
+  getArticles()
 }
 
-const getArticlesPage = async () => { 
+const getArticles = async () => { 
   loading.value = true
   let params = {
-    page: pagination.value.currentPage,
-    pageSize: pagination.value.pageSize
+    ...props.queryParams,
+    page: pagination.page,
+    pageSize: pagination.pageSize
   }
-  let result = await props.getArticles(params)
+  console.log('params from CommonArticleList: ', params)
+  let result = await articleListService(params)
   articles.value = result.data.items
-  pagination.value.total = result.data.total
+  pagination.total = result.data.total
   loading.value = false
 }
 
-onMounted(() => {
-  getArticlesPage()
-})
+onBeforeMount(getArticles)
 
-watch(() => props.getArticles, () => {
-  getArticlesPage()
-})
+watch(() => props.queryParams, () => {
+  getArticles()
+}, { deep: true })
 </script>
 
 <style scoped>

@@ -23,14 +23,22 @@
         </el-menu>
       </div>
     </el-header>
-    <el-drawer v-model="sideBar" direction="ltr" :with-header="false">
+    <el-drawer v-model="sideBar" size="50%" direction="ltr" :with-header="false">
       <el-menu 
         class="nav-menu"
-        router
         mode="vertical" 
         :default-active="activeMenu"
+        @select="handleMenuSelect"
       >
+      <el-sub-menu index="console">
+        <template #title>控制台</template>
         <el-menu-item index="/">首页</el-menu-item>
+        <el-menu-item index="/admin">个人中心</el-menu-item>
+      </el-sub-menu>
+      <el-sub-menu index="manage">
+        <template #title>管理</template>
+        <el-menu-item index="/admin/article">文章</el-menu-item>
+      </el-sub-menu>
       </el-menu>
     </el-drawer>
     <el-main class="main-content">
@@ -42,25 +50,36 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onBeforeMount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search, More } from '@element-plus/icons-vue'
+import { More } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
 
 const route = useRoute()
 const router = useRouter()
 const activeMenu = ref(route.fullPath)
-const mobileHeader = ref(window.innerWidth <= 768)
+const mobileHeader = ref(false)
 const sideBar = ref(false)
 const { width } = useWindowSize()
 
-watch(width, (newVal) => {
+const setMobileHeader = (newVal) => {
   if (newVal <= 768) {
     mobileHeader.value = true
   } else {
     mobileHeader.value = false
   }
+}
+
+watch(width, setMobileHeader)
+
+onBeforeMount(() => {
+  setMobileHeader(width.value)
 })
+
+const handleMenuSelect = (index, indexPath) => {
+  sideBar.value = false
+  router.push(index)
+}
 </script>
 
 <style scoped>
