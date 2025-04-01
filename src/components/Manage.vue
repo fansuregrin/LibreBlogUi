@@ -156,7 +156,7 @@ const deleteItems = (ids) => {
   ).then(async () => {
     await props.deleteItems(ids)
     ElMessage.success('删除成功')
-    await props.getItems()
+    await getItems()
   }).catch(error => {
     if (error instanceof AxiosError) {
       ElMessage.warning('删除失败')

@@ -19,6 +19,7 @@
           <el-sub-menu index="manage">
             <template #title>管理</template>
             <el-menu-item index="/admin/article">文章</el-menu-item>
+            <el-menu-item index="/admin/category">分类</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </div>
@@ -38,6 +39,7 @@
       <el-sub-menu index="manage">
         <template #title>管理</template>
         <el-menu-item index="/admin/article">文章</el-menu-item>
+        <el-menu-item index="/admin/category">分类</el-menu-item>
       </el-sub-menu>
       </el-menu>
     </el-drawer>
