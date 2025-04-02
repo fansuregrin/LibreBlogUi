@@ -11,6 +11,7 @@ import AdminIndex from '@/views/admin/Welcome.vue'
 import ManageArticle from '@/views/admin/Article.vue'
 import ManageCategory from '@/views/admin/Category.vue'
 import ManageTag from '@/views/admin/Tag.vue'
+import ManageUser from '@/views/admin/User.vue'
 
 const routes = [
   { path: '/auth', component: Auth },
@@ -28,7 +29,8 @@ const routes = [
       { path: '/admin', component: AdminIndex },
       { path: '/admin/article', component: ManageArticle },
       { path: '/admin/category', component: ManageCategory },
-      { path: '/admin/tag', component: ManageTag }
+      { path: '/admin/tag', component: ManageTag },
+      { path: '/admin/user', component: ManageUser }
     ]
   }
 ]

@@ -1,8 +1,8 @@
 <template>
 <Manage name="标签" menu-code="tagMgr" :fullscreen-dialog="false"
     :table-data="tags" :total="total" :item="tag"
-    :on-update="onUpdate" :on-create="onCreate"
-    :get-items="getTags" :get-item="getTag" :add-item="addTag"
+    :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
+    :get-items="getTags" :add-item="addTag"
     :update-item="updateTag" :delete-items="deleteTags"
   >
     <template #tableColumns>
@@ -21,7 +21,8 @@
     </template>
     <template #itemFields>
       <el-form :model="tag" label-position="right" label-width="auto"
-        :rules="rules" ref="tagFormRef"
+        :rules="rules" ref="tagFormRef" :v-loading="tagLoading"
+        :validate-on-rule-change="false"
       >
         <el-form-item label="名称" prop="name">
           <el-input v-model="tag.name" style="width: 200px;"/>
@@ -35,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import Manage from '@/components/Manage.vue'
 import { formatDateTime } from '@/utils/date'
 import {
@@ -46,6 +47,8 @@ import {
 const tags = ref([])
 const total = ref(0)
 const tag = ref({})
+const tagFormRef = useTemplateRef('tagFormRef')
+const tagLoading = ref(true)
 
 const rules = {
   name: [
@@ -57,22 +60,28 @@ const rules = {
 }
 
 const onCreate = () => {
+  tagLoading.value = true
   tag.value = {}
+  tagLoading.value = false
 }
 
-const onUpdate = () => {
-  tag.value = {}
+const onEdit = async (row) => {
+  tagLoading.value = true
+  let result = await tagGetService(row.id)
+  tag.value = result.data
+  tagLoading.value = false
+}
+
+const onDialogClose = () => {
+  if (tagFormRef.value) {
+    tagFormRef.value.clearValidate()
+  }
 }
 
 const getTags = async (params) => {
   let result = await tagListService(params)
   tags.value = result.data.items
   total.value = result.data.total
-}
-
-const getTag = async (id) => {
-  let result = await tagGetService(id)
-  tag.value = result.data
 }
 
 const addTag = async (tag) => {

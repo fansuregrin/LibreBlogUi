@@ -27,3 +27,20 @@ export const userListService = (params) => {
 export const userSelfGetService = () => {
   return request.get('/admin/users/me')
 }
+
+export const userAddService = (user) => {
+  return request.post('/admin/users', user)
+}
+
+export const userUpdateService = (user) => {
+  return request.patch('/admin/users', user)
+}
+
+export const userDeleteService = (ids) => {
+  return request.delete('/admin/users', {
+    headers: {
+      "Content-Type": "application/json"
+    },
+    data: ids
+  })
+}

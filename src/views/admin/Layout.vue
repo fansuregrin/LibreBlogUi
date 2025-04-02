@@ -21,6 +21,7 @@
             <el-menu-item index="/admin/article">文章</el-menu-item>
             <el-menu-item index="/admin/category">分类</el-menu-item>
             <el-menu-item index="/admin/tag">标签</el-menu-item>
+            <el-menu-item index="/admin/user">用户</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </div>
@@ -42,6 +43,7 @@
         <el-menu-item index="/admin/article">文章</el-menu-item>
         <el-menu-item index="/admin/category">分类</el-menu-item>
         <el-menu-item index="/admin/tag">标签</el-menu-item>
+        <el-menu-item index="/admin/user">用户</el-menu-item>
       </el-sub-menu>
       </el-menu>
     </el-drawer>

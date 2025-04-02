@@ -3,8 +3,12 @@
     <div class="header-area">
       <h2>{{ `管理${props.name}` }}</h2>
       <div>
-        <el-button :disabled="!menus.create" type="primary" @click="handleCreate">新增</el-button>
-        <el-button :disabled="!menus.delete" type="danger" @click="handleDeleteMultiple">删除</el-button>
+        <el-button :disabled="!menus.create" type="primary" @click="handleCreate">
+          新增
+        </el-button>
+        <el-button :disabled="!menus.delete" type="danger" @click="handleDeleteMultiple">
+          删除
+        </el-button>
       </div>
     </div>
     <el-table ref="table" v-loading="tableLoading" :data="props.tableData"
@@ -16,12 +20,12 @@
       <el-table-column label="操作" width="100">
         <template #default="scope">
           <el-button 
-            :disabled="!menus.update" type="primary" size="small" circle :icon="Edit" 
-            @click="handleEdit(scope.$index, scope.row)"
+            :disabled="!menus.get || !menus.update" type="primary" size="small" 
+            circle :icon="Edit" @click="handleEdit(scope.row)"
           />
           <el-button
             :disabled="!menus.delete" size="small" type="danger" circle :icon="Delete"
-            @click="handleDelete(scope.$index, scope.row)"
+            @click="handleDelete(scope.row)"
           />
         </template>
       </el-table-column>
@@ -42,11 +46,10 @@
     />
   </div>
   <el-dialog v-model="dialog.visible" :title="dialog.title" 
-    :fullscreen="props.fullscreenDialog"
+    :fullscreen="props.fullscreenDialog" :width="dialog.width"
+    @close="props.onDialogClose"
   >
-    <div v-loading="itemLoading">
-      <slot name="itemFields"></slot>
-    </div>
+    <slot name="itemFields"></slot>
     <el-button type="primary" @click="submitItem">提交</el-button>
   </el-dialog>
 </template>
@@ -76,7 +79,6 @@ const props = defineProps({
     default: {}
   },
   getItems: Function,
-  getItem: Function,
   addItem: Function,
   updateItem: Function,
   deleteItems: Function,
@@ -84,23 +86,27 @@ const props = defineProps({
     type: Function,
     default: () => {}
   },
-  onUpdate:  {
+  onEdit:  {
     type: Function,
     default: () => {}
   },
   fullscreenDialog: {
     type: Boolean,
     default: true
+  },
+  onDialogClose: {
+    type: Function,
+    default: () => {}
   }
 })
 
 const table = ref()
 const tableLoading = ref(true)
-const itemLoading = ref(true)
 const dialog = ref({
   type: null,
   title: '',
-  visible: false
+  visible: false,
+  width: '50%'
 })
 const selectedItemIds = ref([])
 const menus = ref({
@@ -114,17 +120,19 @@ const tablePagintion = reactive(new PaginationSetting(1, 10, 0, 'default', 7))
 
 const { width } = useWindowSize()
 
-const setPagination = width => {
+const screeAdaptation = (width) => {
   if (width < 768) {
     tablePagintion.size = 'small'
     tablePagintion.pagerCount = 5
+    dialog.value.width = '95%'
   } else {
     tablePagintion.size = 'default'
     tablePagintion.pagerCount = 7
+    dialog.value.width = '50%'
   }
 }
 
-watch(width, setPagination)
+watch(width, screeAdaptation)
 
 const setupMenus = async () => {
   let code = props.menuCode
@@ -187,27 +195,23 @@ const deleteItems = (ids) => {
   })
 }
 
-const handleCreate = () => {
+const handleCreate = async () => {
   dialog.value.visible = false
   dialog.value.title = `新增${props.name}`
   dialog.value.type = 'create'
-  props.onCreate()
   dialog.value.visible = true
-  itemLoading.value = false
+  await props.onCreate()
 }
 
-const handleEdit = async (index, row) => {
+const handleEdit = async (row) => {
   dialog.value.visible = false
   dialog.value.title = `编辑${props.name}`
   dialog.value.type = 'edit'
   dialog.value.visible = true
-  props.onUpdate()
-  itemLoading.value = true
-  await props.getItem(row.id)
-  itemLoading.value = false
+  await props.onEdit(row)
 }
 
-const handleDelete = (index, row) => {
+const handleDelete = (row) => {
   deleteItems([row.id])
 }
 
@@ -244,7 +248,7 @@ const submitItem = async () => {
 }
 
 onBeforeMount(async () => {
-  setPagination(width.value)
+  screeAdaptation(width.value)
   await setupMenus()
   if (menus.value.list) {
     tableLoading.value = true

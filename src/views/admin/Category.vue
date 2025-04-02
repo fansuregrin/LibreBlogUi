@@ -1,8 +1,8 @@
 <template>
   <Manage name="分类" menu-code="categoryMgr" :fullscreen-dialog="false"
     :table-data="categories" :total="total" :item="category"
-    :on-update="onUpdate" :on-create="onCreate"
-    :get-items="getCategories" :get-item="getCategory" :add-item="addCategory"
+    :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
+    :get-items="getCategories" :add-item="addCategory"
     :update-item="updateCategory" :delete-items="deleteCategoires"
   >
     <template #tableColumns>
@@ -21,7 +21,8 @@
     </template>
     <template #itemFields>
       <el-form :model="category" label-position="right" label-width="auto"
-        :rules="rules" ref="categoryFormRef"
+        :rules="rules" ref="categoryFormRef" :v-loading="categoryLoading"
+        :validate-on-rule-change="false"
       >
         <el-form-item label="名称" prop="name">
           <el-input v-model="category.name" style="width: 200px;"/>
@@ -35,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import Manage from '@/components/Manage.vue'
 import {
   categoryListService, categoryGetService, categoryAddService,
@@ -46,7 +47,8 @@ import { formatDateTime } from '@/utils/date'
 const categories = ref([])
 const total = ref(0)
 const category = ref({})
-const categoryFormRef = ref(null)
+const categoryFormRef = useTemplateRef('categoryFormRef')
+const categoryLoading = ref(true)
 
 const rules = {
   name: [
@@ -57,23 +59,29 @@ const rules = {
   ]
 }
 
+const onCreate = () => {
+  categoryLoading.value = true
+  category.value = {}
+  categoryLoading.value = false
+}
+
+const onEdit = async (row) => {
+  categoryLoading.value = true
+  let result = await categoryGetService(row.id)
+  category.value = result.data
+  categoryLoading.value = false
+}
+
+const onDialogClose = () => {
+  if (categoryFormRef.value) {
+    categoryFormRef.value.clearValidate()
+  }
+}
+
 const getCategories = async (params) => {
   let result = await categoryListService(params)
   categories.value = result.data.items
   total.value = result.data.total
-}
-
-const getCategory = async (id) => {
-  let result = await categoryGetService(id)
-  category.value = result.data
-}
-
-const onUpdate = () => {
-  category.value = {}
-}
-
-const onCreate = () => {
-  category.value = {}
 }
 
 const addCategory = async (category) => {

@@ -16,3 +16,16 @@ export const validateEmail = (rule, value, callback) => {
     callback();
   }
 }
+
+export const validateUsername = (rule, value, callback) => {
+  console.log(`type of ${value}: ${typeof value}`)
+  if (value.length < 4) {
+    callback(new Error('用户名长度不能少于4个字符'))
+  }
+  for (let c of value) {
+    if (/\s/.test(c)) {
+      callback(new Error('用户名不能包含空白字符'))
+    }
+  }
+  callback()
+}

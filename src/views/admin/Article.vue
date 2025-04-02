@@ -2,8 +2,8 @@
   <Manage
     name="文章" menu-code="articleMgr" 
     :table-data="articles" :total="total" :item="article" 
-    :on-create="onCreate" :on-update="onUpdate"
-    :get-items="getArticles" :get-item="getArticle" :delete-items="deleteArticles" 
+    :on-create="onCreate" :on-edit="onEdit" :on-dialog-close="onDialogClose"
+    :get-items="getArticles" :delete-items="deleteArticles" 
     :update-item="updateArticle" :add-item="addArticle"
   >
     <template #tableColumns>
@@ -31,7 +31,10 @@
       </el-table-column>
     </template>
     <template #itemFields>
-      <el-form :model="article" label-position="right" label-width="auto">
+      <el-form :model="article" label-position="right" label-width="auto"
+        :ref="articleFormRef" :rules="rules" v-loading="articleLoading"
+        :validate-on-rule-change="false"
+      >
         <el-form-item label="标题">
           <el-input v-model="article.title" style="width: 600px;"/>
         </el-form-item>
@@ -106,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, useTemplateRef } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import {
@@ -131,19 +134,39 @@ const categoryPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5)
 const tags = ref([])
 const tagPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
 const userStore = useUserStore()
+const articleFormRef = useTemplateRef('articleFormRef')
+const articleLoading = ref(true)
+
+const rules = {}
+
+const onCreate = () => {
+  articleLoading.value = true
+  article.value = {}
+  article.value.authorId = userStore.user.id
+  authors.value = [{ id: userStore.user.id, realname: userStore.user.realname }]
+  articleLoading.value = false
+}
+
+const onEdit = async (row) => {
+  articleLoading.value = true
+  let result = await articleGetService(row.id)
+  article.value = result.data
+  authors.value = [article.value.author]
+  categories.value = [article.value.category]
+  article.value.tags = article.value.tags.map((t) => t.name)
+  articleLoading.value = false
+}
+
+const onDialogClose = () => {
+  if (articleFormRef.value) {
+    articleFormRef.value.clearValidate()
+  }
+}
 
 const getArticles = async (params) => {
   let result = await articleListAdminService(params)
   articles.value = result.data.items
   total.value = result.data.total
-}
-
-const getArticle = async (id) => {
-  let result = await articleGetService(id)
-  article.value = result.data
-  authors.value = [article.value.author]
-  categories.value = [article.value.category]
-  article.value.tags = article.value.tags.map((t) => t.name)
 }
 
 const addArticle = async (article) => {
@@ -156,17 +179,6 @@ const updateArticle = async (article) => {
 
 const deleteArticles = async (ids) => {
   await articleDeleteService(ids)
-}
-
-const onCreate = () => {
-  console.log(userStore.user)
-  article.value = {}
-  article.value.authorId = userStore.user.id
-  authors.value = [{ id: userStore.user.id, realname: userStore.user.realname }]
-}
-
-const onUpdate = () => {
-  article.value = {}
 }
 
 const getAuthors = async () => {
