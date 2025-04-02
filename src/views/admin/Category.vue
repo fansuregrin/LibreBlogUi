@@ -21,7 +21,7 @@
     </template>
     <template #itemFields>
       <el-form :model="category" label-position="right" label-width="auto"
-        :rules="rules" ref="categoryFormRef" :v-loading="categoryLoading"
+        :rules="rules" ref="categoryFormRef" v-loading="categoryLoading"
         :validate-on-rule-change="false"
       >
         <el-form-item label="名称" prop="name">

@@ -21,7 +21,7 @@
     </template>
     <template #itemFields>
       <el-form :model="tag" label-position="right" label-width="auto"
-        :rules="rules" ref="tagFormRef" :v-loading="tagLoading"
+        :rules="rules" ref="tagFormRef" v-loading="tagLoading"
         :validate-on-rule-change="false"
       >
         <el-form-item label="名称" prop="name">
