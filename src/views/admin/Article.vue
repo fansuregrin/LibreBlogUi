@@ -8,36 +8,37 @@
   >
     <template #tableColumns>
       <el-table-column prop="title" label="标题"/>
-      <el-table-column label="作者" width="100">
+      <el-table-column label="作者">
         <template #default="scope">
             <el-tag>{{ scope.row.author.realname }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="category.name" label="分类" width="100"/>
+      <el-table-column prop="category.name" label="分类"/>
       <el-table-column label="标签">
         <template #default="scope">
           <el-tag v-for="tag in scope.row.tags" type="info">{{ tag.name }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" width="160">
+      <el-table-column label="创建时间">
         <template #default="scope">
           {{ formatDateTime(scope.row.createTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="修改时间" width="160">
+      <el-table-column label="修改时间">
         <template #default="scope">
           {{ formatDateTime(scope.row.modifyTime) }}
         </template>
       </el-table-column>
     </template>
     <template #itemFields>
-      <el-form :model="article">
+      <el-form :model="article" label-position="right" label-width="auto">
         <el-form-item label="标题">
-          <el-input v-model="article.title"/>
+          <el-input v-model="article.title" style="width: 600px;"/>
         </el-form-item>
         <el-form-item label="作者">
           <el-select v-model="article.authorId" filterable 
             @visible-change="onAuthorSelectVisibleChange"
+            style="width: 200px;"
           >
             <el-option 
               v-for="author in authors" 
@@ -55,6 +56,7 @@
         <el-form-item label="分类">
           <el-select v-model="article.categoryId" filterable 
             @visible-change="onCategorySelectVisibleChange"
+            style="width: 200px;"
           >
             <el-option 
               v-for="c in categories" 
@@ -75,8 +77,12 @@
             multiple
             allow-create
             filterable
+            collapse-tags
+            collapse-tags-tooltip
+            :max-collapse-tags="3"
             placeholder="为文章添加标签"
             @visible-change="onTagSelectVisibleChange"
+            style="width: 200px;"
           >
             <el-option v-for="tag in tags" :value="tag.name"/>
             <template #footer>

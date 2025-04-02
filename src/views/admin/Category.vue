@@ -1,5 +1,5 @@
 <template>
-  <Manage name="分类" menu-code="categoryMgr"
+  <Manage name="分类" menu-code="categoryMgr" :fullscreen-dialog="false"
     :table-data="categories" :total="total" :item="category"
     :on-update="onUpdate" :on-create="onCreate"
     :get-items="getCategories" :get-item="getCategory" :add-item="addCategory"
@@ -20,12 +20,14 @@
       </el-table-column>
     </template>
     <template #itemFields>
-      <el-form :model="category">
-        <el-form-item label="名称">
-          <el-input v-model="category.name"/>
+      <el-form :model="category" label-position="right" label-width="auto"
+        :rules="rules" ref="categoryFormRef"
+      >
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="category.name" style="width: 200px;"/>
         </el-form-item>
-        <el-form-item label="缩略名">
-          <el-input v-model="category.slug"/>
+        <el-form-item label="缩略名" prop="slug">
+          <el-input v-model="category.slug" style="width: 200px;"/>
         </el-form-item>
       </el-form>
     </template>
@@ -44,6 +46,16 @@ import { formatDateTime } from '@/utils/date'
 const categories = ref([])
 const total = ref(0)
 const category = ref({})
+const categoryFormRef = ref(null)
+
+const rules = {
+  name: [
+    { required: true, message: '请输入名称', trigger: 'blur' }
+  ],
+  slug: [
+    { required: true, message: '请输入缩略名', trigger: 'blur' }
+  ]
+}
 
 const getCategories = async (params) => {
   let result = await categoryListService(params)

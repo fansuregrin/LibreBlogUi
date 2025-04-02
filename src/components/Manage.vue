@@ -41,7 +41,9 @@
       @size-change="onSizeChange"
     />
   </div>
-  <el-dialog v-model="dialog.visible" :title="dialog.title" fullscreen>
+  <el-dialog v-model="dialog.visible" :title="dialog.title" 
+    :fullscreen="props.fullscreenDialog"
+  >
     <div v-loading="itemLoading">
       <slot name="itemFields"></slot>
     </div>
@@ -61,16 +63,35 @@ import { menuSelfListService } from '@/api/menu'
 const props = defineProps({
   name: String,
   menuCode: String,
-  tableData: Array,
-  total: Number,
-  item: Object,
+  tableData: {
+    type: Array,
+    default: []
+  },
+  total: {
+    type: Number,
+    default: 0
+  },
+  item: {
+    type: Object,
+    default: {}
+  },
   getItems: Function,
   getItem: Function,
   addItem: Function,
   updateItem: Function,
   deleteItems: Function,
-  onCreate: Function,
-  onUpdate: Function
+  onCreate: {
+    type: Function,
+    default: () => {}
+  },
+  onUpdate:  {
+    type: Function,
+    default: () => {}
+  },
+  fullscreenDialog: {
+    type: Boolean,
+    default: true
+  }
 })
 
 const table = ref()
@@ -128,11 +149,11 @@ const getItems = async () => {
 }
 
 const onPageChange = async () => {
-  await getArticles()
+  await getItems()
 }
 
 const onSizeChange = async () => {
-  await getArticles()
+  await getItems()
 }
 
 const onSelectionChange = (rows) => {
