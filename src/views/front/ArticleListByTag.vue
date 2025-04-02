@@ -10,7 +10,7 @@
 import { ref, reactive, watch, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import ArticleListCommon from '@/components/CommonArticleList.vue'
-import { tagGetService } from '@/api/tag'
+import { tagGetBySlugService } from '@/api/tag'
 
 const route = useRoute()
 const loading = ref(true)
@@ -19,7 +19,7 @@ const queryParams = reactive({})
 
 const getTag = async () => {
   loading.value = true
-  let result = await tagGetService(route.params.slug)
+  let result = await tagGetBySlugService(route.params.slug)
   tag.value = result.data
   queryParams.tagSlug = tag.value.slug
   loading.value = false

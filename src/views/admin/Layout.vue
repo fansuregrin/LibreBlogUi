@@ -20,6 +20,7 @@
             <template #title>管理</template>
             <el-menu-item index="/admin/article">文章</el-menu-item>
             <el-menu-item index="/admin/category">分类</el-menu-item>
+            <el-menu-item index="/admin/tag">标签</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </div>
@@ -40,6 +41,7 @@
         <template #title>管理</template>
         <el-menu-item index="/admin/article">文章</el-menu-item>
         <el-menu-item index="/admin/category">分类</el-menu-item>
+        <el-menu-item index="/admin/tag">标签</el-menu-item>
       </el-sub-menu>
       </el-menu>
     </el-drawer>
@@ -56,6 +58,7 @@ import { ref, onBeforeMount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { More } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
+import { menuSelfListService } from '@/api/menu'
 
 const route = useRoute()
 const router = useRouter()

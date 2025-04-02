@@ -10,6 +10,7 @@ import AdminLayout from '@/views/admin/Layout.vue'
 import AdminIndex from '@/views/admin/Welcome.vue'
 import ManageArticle from '@/views/admin/Article.vue'
 import ManageCategory from '@/views/admin/Category.vue'
+import ManageTag from '@/views/admin/Tag.vue'
 
 const routes = [
   { path: '/auth', component: Auth },
@@ -26,7 +27,8 @@ const routes = [
     path: '/admin', component: AdminLayout, children: [
       { path: '/admin', component: AdminIndex },
       { path: '/admin/article', component: ManageArticle },
-      { path: '/admin/category', component: ManageCategory }
+      { path: '/admin/category', component: ManageCategory },
+      { path: '/admin/tag', component: ManageTag }
     ]
   }
 ]
