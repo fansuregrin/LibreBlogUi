@@ -4,6 +4,7 @@
     :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
     :get-items="getUsers" :add-item="addUser"
     :update-item="updateUser" :delete-items="deleteUsers"
+    :check-data-scope="checkDataScope"
   >
     <template #tableColumns>
       <el-table-column prop="username" label="用户名"/>
@@ -78,6 +79,7 @@ import {
 import { roleListService } from '@/api/role'
 import { PaginationSetting } from '@/utils/pagination'
 import { validateUsername, validateEmail, validatePassword } from '@/utils/validate'
+import { useUserStore } from '@/stores/user'
 
 const users = ref([])
 const user = ref({})
@@ -88,6 +90,8 @@ const roles = ref([])
 const passwordFormItem = ref(false)
 const userLoading = ref(true)
 const rules = ref(null)
+
+const userStore = useUserStore()
 
 const onCreate = () => {
   userLoading.value = true
@@ -111,6 +115,10 @@ const onDialogClose = () => {
   if (userFormRef.value) {
     userFormRef.value.clearValidate()
   }
+}
+
+const checkDataScope = (row) => {
+  return row.id === userStore.user.id
 }
 
 const rulesCreate = {

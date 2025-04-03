@@ -3,10 +3,12 @@
     <div class="header-area">
       <h2>{{ `管理${props.name}` }}</h2>
       <div>
-        <el-button :disabled="!menus.create" type="primary" @click="handleCreate">
+        <el-button :disabled="!canCreate()" type="primary" @click="handleCreate">
           新增
         </el-button>
-        <el-button :disabled="!menus.delete" type="danger" @click="handleDeleteMultiple">
+        <el-button :disabled="!menus.has(`${props.menuCode}:delete`)" type="danger" 
+          @click="handleDeleteMultiple"
+        >
           删除
         </el-button>
       </div>
@@ -14,18 +16,18 @@
     <el-table ref="table" v-loading="tableLoading" :data="props.tableData"
       @selection-change="onSelectionChange" class="table-area"
     >
-      <el-table-column v-if="menus.delete" type="selection" width="30"/>
+      <el-table-column :selectable="canDelete" type="selection" width="30"/>
       <el-table-column type="index" label="序号" width="60"/>
       <slot name="tableColumns"></slot>
       <el-table-column label="操作" width="100">
         <template #default="scope">
           <el-button 
-            :disabled="!menus.get || !menus.update" type="primary" size="small" 
+            :disabled="!canEdit(scope.row)" type="primary" size="small" 
             circle :icon="Edit" @click="handleEdit(scope.row)"
           />
           <el-button
-            :disabled="!menus.delete" size="small" type="danger" circle :icon="Delete"
-            @click="handleDelete(scope.row)"
+            :disabled="!canDelete(scope.row)" size="small" type="danger" 
+            circle :icon="Delete" @click="handleDelete(scope.row)"
           />
         </template>
       </el-table-column>
@@ -97,6 +99,10 @@ const props = defineProps({
   onDialogClose: {
     type: Function,
     default: () => {}
+  },
+  checkDataScope: {
+    type: Function,
+    default: (row) => false
   }
 })
 
@@ -109,13 +115,7 @@ const dialog = ref({
   width: '50%'
 })
 const selectedItemIds = ref([])
-const menus = ref({
-  list: false,
-  get: false,
-  create: false,
-  update: false,
-  delete: false,
-})
+const menus = reactive(new Map())
 const tablePagintion = reactive(new PaginationSetting(1, 10, 0, 'default', 7))
 
 const { width } = useWindowSize()
@@ -139,11 +139,7 @@ const setupMenus = async () => {
   let params = { code: code }
   let result = await menuSelfListService(params)
   for (let m of result.data) {
-    menus.value.list = menus.value.list || (m.code === `${code}:list`)
-    menus.value.get = menus.value.get || (m.code === `${code}:get`)
-    menus.value.create = menus.value.create || (m.code === `${code}:create`)
-    menus.value.update = menus.value.update || (m.code === `${code}:update`)
-    menus.value.delete = menus.value.delete || (m.code === `${code}:delete`)
+    menus.set(m.code, m)
   }
 }
 
@@ -250,7 +246,7 @@ const submitItem = async () => {
 onBeforeMount(async () => {
   screeAdaptation(width.value)
   await setupMenus()
-  if (menus.value.list) {
+  if (menus.has(`${props.menuCode}:list`)) {
     tableLoading.value = true
     await getItems()
     tableLoading.value = false
@@ -258,6 +254,32 @@ onBeforeMount(async () => {
     ElMessageBox.alert(`没有权限获取${props.name}列表`, '温馨提示', { type: 'warning' })
   }
 })
+
+const canCreate = () => {
+  let code = `${props.menuCode}:create`
+  return menus.has(code)
+}
+
+const canEdit = (row) => {
+  let code = `${props.menuCode}:update`
+  if (menus.has(code)) {
+    let m = menus.get(code)
+    return m.scope === 1 ? props.checkDataScope(row) : true
+  } else {
+    return false
+  }
+}
+
+const canDelete = (row) => {
+  let code = `${props.menuCode}:delete`
+  if (menus.has(code)) {
+    let m = menus.get(code)
+    return m.scope === 1 ? props.checkDataScope(row) : true
+  } else {
+    return false
+  }
+}
+
 </script>
 
 <style scoped>

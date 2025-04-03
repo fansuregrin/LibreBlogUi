@@ -5,6 +5,7 @@
     :on-create="onCreate" :on-edit="onEdit" :on-dialog-close="onDialogClose"
     :get-items="getArticles" :delete-items="deleteArticles" 
     :update-item="updateArticle" :add-item="addArticle"
+    :check-data-scope="checkDataScope"
   >
     <template #tableColumns>
       <el-table-column prop="title" label="标题"/>
@@ -51,6 +52,7 @@
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="authorPagination.page"
                 :page-size="authorPagination.pageSize"
+                hide-on-single-page
                 :total="authorPagination.total" @current-change="onPageChangeAuthor"
               />
             </template>
@@ -68,6 +70,7 @@
             <template #footer>
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="categoryPagination.page"
+                hide-on-single-page
                 :page-size="categoryPagination.pageSize"
                 :total="categoryPagination.total" @current-change="onPageChangeCategory"
               />
@@ -91,6 +94,7 @@
             <template #footer>
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="tagPagination.page"
+                hide-on-single-page
                 :page-size="tagPagination.pageSize"
                 :total="tagPagination.total" @current-change="onPageChangeTag"
               />
@@ -161,6 +165,10 @@ const onDialogClose = () => {
   if (articleFormRef.value) {
     articleFormRef.value.clearValidate()
   }
+}
+
+const checkDataScope = (row) => {
+  return row.authorId === userStore.user.id;
 }
 
 const getArticles = async (params) => {
