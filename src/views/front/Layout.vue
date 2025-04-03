@@ -1,35 +1,9 @@
 <template>
   <div class="layout-container">
     <el-header class="fixed-header">
-      <div class="header-content" v-if="mobileHeader">
-        <el-button :icon="More" text @click="sideBar = true"></el-button>
-        <div class="header-right">
-          <el-popover trigger="click" :width="200">
-            <template #reference>
-              <el-button text circle :icon="Search"></el-button>
-            </template>
-            <template #default>
-              <el-input placeholder="搜索文章" v-model="query" />
-            </template>
-          </el-popover>
-          <el-dropdown v-if="isLogin" @command="handleCommand">
-            <el-button text circle :icon="User" />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item :icon="Setting" command="admin">进入后台</el-dropdown-item>
-                <el-dropdown-item :icon="SwitchButton" command="logout">登出</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-button v-else class="auth-button" type="primary" 
-            @click="router.push('/auth')" size="small"
-          >
-            登录/注册
-          </el-button>
-        </div>
-      </div>
-      <div class="header-content" v-else>
-        <el-menu 
+      <div class="header-content">
+        <el-button v-if="mobileHeader" :icon="Menu" text @click="sideBar = true"/>
+        <el-menu v-else
           class="nav-menu"
           mode="horizontal" 
           router
@@ -47,7 +21,6 @@
           </el-sub-menu>
         </el-menu>
         <div class="header-right">
-          <el-input class="search-input" placeholder="搜索文章" v-model="query" />
           <el-button text circle :icon="Search"></el-button>
           <el-dropdown v-if="isLogin" @command="handleCommand">
             <el-button text circle :icon="User" />
@@ -96,23 +69,20 @@
 <script setup>
 import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search, More, User, SwitchButton, Setting } from '@element-plus/icons-vue'
+import { Search, User, SwitchButton, Setting, Menu } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
 import { categoryListAllService } from '@/api/category'
 import { useTokenStore } from '@/stores/token'
-import { useUserStore } from '@/stores/user'
+import { useLogout } from '@/utils/logout'
 
 const route = useRoute()
 const router = useRouter()
 const tokenStore = useTokenStore()
-const userStore = useUserStore()
 const activeMenu = ref(route.fullPath)
 const mobileHeader = ref(false)
 const sideBar = ref(false)
 const { width } = useWindowSize()
-
-const query = ref('')
-
+const logout = useLogout()
 const isLogin = ref(false)
 
 const categoryList = ref([])
@@ -149,9 +119,7 @@ const handleCommand = (command) => {
   if (command === 'admin') {
     router.push('/admin')
   } else if (command === 'logout') {
-    tokenStore.removeToken()
-    userStore.removeUser()
-    isLogin.value = false
+    logout(() => { isLogin.value = false })
   }
 }
 

@@ -100,7 +100,6 @@ const getArticles = async () => {
     page: pagination.page,
     pageSize: pagination.pageSize
   }
-  console.log('params from CommonArticleList: ', params)
   let result = await articleListService(params)
   articles.value = result.data.items
   pagination.total = result.data.total

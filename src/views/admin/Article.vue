@@ -256,3 +256,9 @@ const onTagSelectVisibleChange = async (visible) => {
 }
 
 </script>
+
+<style scoped>
+.el-tag {
+  margin-right: 5px;
+}
+</style>

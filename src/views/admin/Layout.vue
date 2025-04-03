@@ -2,7 +2,7 @@
   <div class="layout-container">
     <el-header class="fixed-header">
       <div class="header-content" v-if="mobileHeader">
-        <el-button :icon="More" text @click="sideBar = true"></el-button>
+        <el-button :icon="Menu" text @click="sideBar = true"></el-button>
       </div>
       <div class="header-content" v-else>
         <el-menu 
@@ -24,6 +24,17 @@
             <el-menu-item index="/admin/user">用户</el-menu-item>
           </el-sub-menu>
         </el-menu>
+        <el-dropdown @command="handleCommand" class="avatar">
+          <span>
+            <el-avatar/>
+            <el-icon><caret-bottom /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :icon="SwitchButton" command="logout">登出</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </el-header>
     <el-drawer v-model="sideBar" size="50%" direction="ltr" :with-header="false">
@@ -58,7 +69,8 @@
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { More } from '@element-plus/icons-vue'
+import { Menu, CaretBottom, SwitchButton } from '@element-plus/icons-vue'
+import { useLogout } from '@/utils/logout'
 import { useWindowSize } from '@vueuse/core'
 import { menuSelfListService } from '@/api/menu'
 
@@ -68,6 +80,7 @@ const activeMenu = ref(route.fullPath)
 const mobileHeader = ref(false)
 const sideBar = ref(false)
 const { width } = useWindowSize()
+const logout = useLogout()
 
 const setMobileHeader = (newVal) => {
   if (newVal <= 768) {
@@ -86,6 +99,12 @@ onBeforeMount(() => {
 const handleMenuSelect = (index, indexPath) => {
   sideBar.value = false
   router.push(index)
+}
+
+const handleCommand = (command) => {
+  if (command === 'logout') {
+    logout(() => { router.push('/atuh') })
+  }
 }
 </script>
 
@@ -114,6 +133,19 @@ const handleMenuSelect = (index, indexPath) => {
   justify-content: space-between;
   align-items: center;
   height: 100%;
+
+  .avatar {
+    margin-right: 10px;
+    cursor: pointer;
+    color: var(--el-color-primary);
+    display: flex;
+    align-items: center;
+    
+  }
+}
+
+:deep(.el-tooltip__trigger:focus-visible) {
+  outline: unset;
 }
 
 .nav-menu {
