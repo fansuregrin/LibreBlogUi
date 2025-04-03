@@ -1,11 +1,9 @@
 <template>
   <div class="layout-container">
     <el-header class="fixed-header">
-      <div class="header-content" v-if="mobileHeader">
-        <el-button :icon="Menu" text @click="sideBar = true"></el-button>
-      </div>
-      <div class="header-content" v-else>
-        <el-menu 
+      <div class="header-content">
+        <el-button :icon="Menu" text @click="sideBar = true"/>
+        <el-menu v-if="!mobileHeader"
           class="nav-menu"
           router
           mode="horizontal" 
