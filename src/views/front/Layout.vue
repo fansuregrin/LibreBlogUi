@@ -23,7 +23,10 @@
         <div class="header-right">
           <el-button text circle :icon="Search"></el-button>
           <el-dropdown v-if="isLogin" @command="handleCommand">
-            <el-button text circle :icon="User" />
+            <span>
+              <el-avatar :src="userStore.user.avatar"/>
+              <el-icon><caret-bottom /></el-icon>
+            </span>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item :icon="SwitchButton" command="logout">登出</el-dropdown-item>
@@ -69,15 +72,17 @@
 <script setup>
 import { ref, watch, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search, User, SwitchButton, Setting, Menu } from '@element-plus/icons-vue'
+import { Search, CaretBottom, SwitchButton, Setting, Menu } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
 import { categoryListAllService } from '@/api/category'
 import { useTokenStore } from '@/stores/token'
+import { useUserStore } from '@/stores/user'
 import { useLogout } from '@/utils/logout'
 
 const route = useRoute()
 const router = useRouter()
 const tokenStore = useTokenStore()
+const userStore = useUserStore()
 const activeMenu = ref(route.fullPath)
 const mobileHeader = ref(false)
 const sideBar = ref(false)
@@ -185,5 +190,9 @@ onBeforeMount(() => {
 .main-content {
   padding-top: 60px;
   background: radial-gradient(circle, #f5f5f5, #dbedfb);
+}
+
+:deep(.el-tooltip__trigger:focus-visible) {
+  outline: unset;
 }
 </style>

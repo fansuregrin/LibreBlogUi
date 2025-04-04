@@ -12,8 +12,8 @@
           <div class="article-meta">
             <el-text>
               <el-icon><User /></el-icon>
-              <router-link :to="`/user/${article.author.id}`" class="link">
-                {{ article.author.realname }}
+              <router-link :to="`/user/${article.author?.id}`" class="link">
+                {{ article.author?.realname }}
               </router-link>
             </el-text>
             <el-text>

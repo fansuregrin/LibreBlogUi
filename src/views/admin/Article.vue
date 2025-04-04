@@ -11,7 +11,7 @@
       <el-table-column prop="title" label="标题"/>
       <el-table-column label="作者">
         <template #default="scope">
-            <el-tag>{{ scope.row.author.realname }}</el-tag>
+            <el-tag>{{ scope.row.author?.realname }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="category.name" label="分类"/>

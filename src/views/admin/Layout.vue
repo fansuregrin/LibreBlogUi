@@ -12,7 +12,6 @@
           <el-sub-menu index="console">
             <template #title>控制台</template>
             <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/admin">个人中心</el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="manage">
             <template #title>管理</template>
@@ -24,7 +23,7 @@
         </el-menu>
         <el-dropdown @command="handleCommand" class="avatar">
           <span>
-            <el-avatar/>
+            <el-avatar :src="userStore.user.avatar"/>
             <el-icon><caret-bottom /></el-icon>
           </span>
           <template #dropdown>
@@ -70,10 +69,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { Menu, CaretBottom, SwitchButton } from '@element-plus/icons-vue'
 import { useLogout } from '@/utils/logout'
 import { useWindowSize } from '@vueuse/core'
+import { useUserStore } from '@/stores/user'
 import { menuSelfListService } from '@/api/menu'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 const activeMenu = ref(route.fullPath)
 const mobileHeader = ref(false)
 const sideBar = ref(false)
