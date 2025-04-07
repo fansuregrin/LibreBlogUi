@@ -16,6 +16,10 @@ export const userRegisterService = (registerData) => {
   })
 }
 
+export const userLogoutService = () => {
+  return request.get('/logout')
+}
+
 export const userGetService = (id) => {
   return request.get(`/users/${id}`)
 }

@@ -28,7 +28,12 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :icon="SwitchButton" command="logout">登出</el-dropdown-item>
+              <el-dropdown-item :icon="User" command="personalCenter">
+                个人中心
+              </el-dropdown-item>
+              <el-dropdown-item :icon="SwitchButton" command="logout">
+                登出
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -66,7 +71,7 @@
 <script setup>
 import { ref, onBeforeMount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Menu, CaretBottom, SwitchButton } from '@element-plus/icons-vue'
+import { Menu, CaretBottom, SwitchButton, User } from '@element-plus/icons-vue'
 import { useLogout } from '@/utils/logout'
 import { useWindowSize } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
@@ -102,7 +107,9 @@ const handleMenuSelect = (index, indexPath) => {
 
 const handleCommand = (command) => {
   if (command === 'logout') {
-    logout(() => { router.push('/atuh') })
+    logout(() => { router.push('/auth') })
+  } else if (command === 'personalCenter') {
+    router.push('/admin')
   }
 }
 </script>

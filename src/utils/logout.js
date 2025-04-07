@@ -2,6 +2,7 @@ import { ElMessage, ElMessageBox } from "element-plus"
 import { useRouter } from "vue-router"
 import { useUserStore } from "@/stores/user"
 import { useTokenStore } from "@/stores/token"
+import { userLogoutService } from "@/api/user"
 
 export const useLogout = () => {
   const router = useRouter()
@@ -18,11 +19,17 @@ export const useLogout = () => {
         type: 'warning'
       }
     )
-    .then(() => {
-      tokenStore.removeToken()
-      userStore.removeUser()
-      ElMessage.success('登出成功')
-      onSuccess()
+    .then(async () => {
+      await userLogoutService()
+      .then(() => {
+          tokenStore.removeToken()
+          userStore.removeUser()
+          ElMessage.success('登出成功')
+          onSuccess()
+        })
+        .catch((error) => {
+
+        })
     })
     .catch((error) => {
       

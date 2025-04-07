@@ -1,7 +1,7 @@
 <template>
   <el-card>
     <el-space wrap>
-      <div>
+      <div v-loading="loading">
         <el-space>
           <el-upload :disabled="!userFormActive" action="#" :show-file-list="false"
             :http-request="uploadFile" :on-success="onUploadSuccess"
@@ -38,15 +38,16 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, onBeforeMount } from 'vue'
 import { Lock, Unlock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { uploadService } from '@/api/oss'
-import { userUpdateService } from '@/api/user'
+import { userSelfGetService, userUpdateService } from '@/api/user'
 
+const loading = ref(true)
 const userStore = useUserStore()
-const user = userStore.user
+const user = ref({})
 const userFormRef = useTemplateRef('userFormRef')
 const userFormActive = ref(false)
 
@@ -69,6 +70,14 @@ const submitUser = async (user) => {
       ElMessage.error('更新失败')
     })
 }
+
+onBeforeMount(async () => {
+  loading.value = true
+  let result = await userSelfGetService()
+  user.value = result.data
+  userStore.setUser(user.value)
+  loading.value = false
+})
 
 </script>
 
