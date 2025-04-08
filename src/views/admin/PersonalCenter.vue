@@ -57,7 +57,8 @@ const uploadFile = async (options) => {
 }
 
 const onUploadSuccess = (resp) => {
-  user.avatar = resp.data
+  console.debug('upload user avatar successfully')
+  user.value.avatar = resp.data
 }
 
 const submitUser = async (user) => {

@@ -12,13 +12,15 @@ instance.interceptors.response.use(
       return result.data
     }
 
-    ElMessage.error(result.data.msg ? result.data.msg : '服务异常')
+    console.debug(result.data.msg)
+    ElMessage.error('服务异常')
     return Promise.reject(result.data)
   },
   error => {
     const response = error.response
     if (response.status === 401) {
-      ElMessage.error(response.data.msg ? response.data.msg : '请先登录')
+      console.debug(response.data.msg)
+      ElMessage.error('请先登录')
       router.push('/auth')
     }
     return Promise.reject(error)

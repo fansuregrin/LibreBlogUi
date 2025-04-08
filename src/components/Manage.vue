@@ -179,15 +179,15 @@ const deleteItems = (ids) => {
       type: 'warning'
     }
   ).then(async () => {
-    await props.deleteItems(ids)
-    ElMessage.success('删除成功')
-    await getItems()
-  }).catch(error => {
-    if (error instanceof AxiosError) {
+    await props.deleteItems(ids).then(async () => {
+      ElMessage.success('删除成功')
+      await getItems()
+    })
+    .catch(error => {
       ElMessage.warning('删除失败')
-    } else if(error === 'cancel') {
-      ElMessage.info('用户取消了删除')
-    }
+    })
+  }).catch(error => {
+    ElMessage.info('用户取消了删除')
   })
 }
 
@@ -223,7 +223,7 @@ const submitItem = async () => {
       ElMessage.success('更新成功')
     })
     .catch(error => {
-      console.log(error.response.data.msg)
+      console.debug(error.response.data.msg)
       ElMessage.error('更新失败')
     })
   } else if (type === 'create') {
@@ -232,7 +232,7 @@ const submitItem = async () => {
       ElMessage.success('添加成功')
     })
     .catch(error => {
-      console.log(error.response.data.msg)
+      console.debug(error.response.data.msg)
       ElMessage.error('添加失败')
     })
   }

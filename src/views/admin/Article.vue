@@ -52,7 +52,6 @@
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="authorPagination.page"
                 :page-size="authorPagination.pageSize"
-                hide-on-single-page
                 :total="authorPagination.total" @current-change="onPageChangeAuthor"
               />
             </template>
@@ -70,7 +69,6 @@
             <template #footer>
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="categoryPagination.page"
-                hide-on-single-page
                 :page-size="categoryPagination.pageSize"
                 :total="categoryPagination.total" @current-change="onPageChangeCategory"
               />
@@ -94,7 +92,6 @@
             <template #footer>
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="tagPagination.page"
-                hide-on-single-page
                 :page-size="tagPagination.pageSize"
                 :total="tagPagination.total" @current-change="onPageChangeTag"
               />
@@ -127,10 +124,13 @@ import Manage from '@/components/Manage.vue'
 import { PaginationSetting } from '@/utils/pagination'
 import { formatDateTime } from '@/utils/date'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 const articles = ref([])
 const total = ref(0)
 const article = ref({})
+const articleFormRef = useTemplateRef('articleFormRef')
+const articleLoading = ref(true)
 const authors = ref([])
 const authorPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
 const categories = ref([])
@@ -138,8 +138,6 @@ const categoryPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5)
 const tags = ref([])
 const tagPagination = reactive(new PaginationSetting(1, 5, 0, 'default', 5))
 const userStore = useUserStore()
-const articleFormRef = useTemplateRef('articleFormRef')
-const articleLoading = ref(true)
 
 const rules = {}
 
@@ -153,12 +151,16 @@ const onCreate = () => {
 
 const onEdit = async (row) => {
   articleLoading.value = true
-  let result = await articleGetService(row.id)
-  article.value = result.data
-  authors.value = [article.value.author]
-  categories.value = [article.value.category]
-  article.value.tags = article.value.tags.map((t) => t.name)
-  articleLoading.value = false
+  await articleGetService(row.id).then(result => {
+    article.value = result.data
+    authors.value = [article.value.author]
+    categories.value = [article.value.category]
+    article.value.tags = article.value.tags.map((t) => t.name)
+    articleLoading.value = false
+  }).catch(error => {
+    console.debug('获取文章失败', error)
+    ElMessage.error('获取文章失败')
+  })
 }
 
 const onDialogClose = () => {
@@ -172,10 +174,14 @@ const checkDataScope = (row) => {
 }
 
 const getArticles = async (params) => {
-  let result = await articleListAdminService(params)
-  articles.value = result.data.items
-  total.value = result.data.total
-}
+  await articleListAdminService(params).then(result => {
+    articles.value = result.data.items
+    total.value = result.data.total
+  }).catch(error => {
+    console.debug(error.response.data.msg)
+    ElMessage.error('获取文章列表失败')
+  })
+} 
 
 const addArticle = async (article) => {
   await articleAddService(article)
@@ -194,9 +200,13 @@ const getAuthors = async () => {
     page: authorPagination.page,
     pageSize: authorPagination.pageSize
   }
-  let result = await userListService(params)
-  authorPagination.total = result.data.total
-  authors.value = result.data.items
+  await userListService(params).then(result => {
+    authorPagination.total = result.data.total
+    authors.value = result.data.items
+  }).catch(error => {
+    console.debug(error.response.data.msg)
+    ElMessage.error('获取作者列表失败')
+  })
 }
 
 const onPageChangeAuthor = async (page) => {
@@ -216,9 +226,13 @@ const getCategories = async () => {
     page: categoryPagination.page,
     pageSize: categoryPagination.pageSize
   }
-  let result = await categoryListService(params)
-  categories.value = result.data.items
-  categoryPagination.total = result.data.total
+  await categoryListService(params).then(result => {
+    categories.value = result.data.items
+    categoryPagination.total = result.data.total
+  }).catch(error => {
+    console.debug(error.response.data.msg)
+    ElMessage.error('获取分类列表失败')
+  })
 }
 
 const onPageChangeCategory = async (page) => {
@@ -238,9 +252,13 @@ const getTags = async () => {
     page: tagPagination.page,
     pageSize: tagPagination.pageSize
   }
-  let result = await tagListService(params)
-  tagPagination.total = result.data.total
-  tags.value = result.data.items
+  await tagListService(params).then(result => {
+    tagPagination.total = result.data.total
+    tags.value = result.data.items
+  }).catch(error => {
+    console.debug(error.response.data.msg)
+    ElMessage.error('获取标签列表失败')
+  })
 }
 
 const onPageChangeTag = async (page) => {

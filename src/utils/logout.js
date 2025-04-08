@@ -1,11 +1,9 @@
 import { ElMessage, ElMessageBox } from "element-plus"
-import { useRouter } from "vue-router"
 import { useUserStore } from "@/stores/user"
 import { useTokenStore } from "@/stores/token"
 import { userLogoutService } from "@/api/user"
 
 export const useLogout = () => {
-  const router = useRouter()
   const userStore = useUserStore()
   const tokenStore = useTokenStore()
 
@@ -27,12 +25,13 @@ export const useLogout = () => {
           ElMessage.success('登出成功')
           onSuccess()
         })
-        .catch((error) => {
-
-        })
+      .catch((error) => {
+        console.debug('logout', error)
+      })
     })
     .catch((error) => {
-      
+      console.debug('confirm logout', error)
+      ElMessage.info('用户取消了登出')
     })
   }
 
