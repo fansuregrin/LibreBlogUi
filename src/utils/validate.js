@@ -11,14 +11,13 @@ export const validatePassword = (rule, value, callback) => {
 export const validateEmail = (rule, value, callback) => {
   const regex = /^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*@(\w+)(\.(\w+))+$/
   if (!regex.test(value)) {
-    callback(new Error("无效的邮箱"))
+    callback(new Error("邮箱格式错误"))
   } else {
     callback();
   }
 }
 
 export const validateUsername = (rule, value, callback) => {
-  console.debug(`type of ${value}: ${typeof value}`)
   if (value.length < 4) {
     callback(new Error('用户名长度不能少于4个字符'))
   }

@@ -51,7 +51,6 @@
             <template #footer>
               <el-pagination size="small" layout="prev,pager,next" 
                 v-model:current-page="rolePagination.page"
-                hide-on-single-page
                 :page-size="rolePagination.pageSize"
                 :total="rolePagination.total" @current-change="onPageChangeRole"
               />
@@ -70,6 +69,7 @@
 
 <script setup>
 import { ref, reactive, useTemplateRef } from 'vue'
+import { ElMessage } from 'element-plus'
 import Manage from '@/components/Manage.vue'
 import { formatDateTime } from '@/utils/date'
 import {

@@ -92,6 +92,10 @@ const props = defineProps({
     type: Function,
     default: () => {}
   },
+  beforeSubmitItem: {
+    type: Function,
+    default: () => { return true }
+  },
   fullscreenDialog: {
     type: Boolean,
     default: true
@@ -170,6 +174,7 @@ const deleteItems = (ids) => {
     ElMessage.warning(`请先选择要删除的${props.name}！`)
     return
   }
+  
   ElMessageBox.confirm(
     `系统将删除所选${props.name}。继续？`,
     '温馨提示',
@@ -179,13 +184,14 @@ const deleteItems = (ids) => {
       type: 'warning'
     }
   ).then(async () => {
-    await props.deleteItems(ids).then(async () => {
+    try {
+      await props.deleteItems(ids)
       ElMessage.success('删除成功')
-      await getItems()
-    })
-    .catch(error => {
+    } catch (error) {
       ElMessage.warning('删除失败')
-    })
+    } finally {
+      await getItems()
+    }
   }).catch(error => {
     ElMessage.info('用户取消了删除')
   })
@@ -216,25 +222,32 @@ const handleDeleteMultiple = () => {
 }
 
 const submitItem = async () => {
+  let isValid = await props.beforeSubmitItem()
+  if (!isValid) {
+    return
+  }
+  
   let type = dialog.value.type
   if (type === 'edit') {
-    await props.updateItem(props.item)
-    .then(result => {
+    try {
+      await props.updateItem(props.item)
       ElMessage.success('更新成功')
-    })
-    .catch(error => {
-      console.debug(error.response.data.msg)
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.debug(error.response.data?.msg)
+      }
       ElMessage.error('更新失败')
-    })
+    }
   } else if (type === 'create') {
-    await props.addItem(props.item)
-    .then(result => {
+    try {
+      await props.addItem(props.item)
       ElMessage.success('添加成功')
-    })
-    .catch(error => {
-      console.debug(error.response.data.msg)
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.debug(error.response.data?.msg)
+      }
       ElMessage.error('添加失败')
-    })
+    }
   }
   dialog.value.visible = false
 

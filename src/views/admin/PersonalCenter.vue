@@ -14,7 +14,7 @@
           />
         </el-space>
         <el-form :model="user" ref="userFormRef" :disabled="!userFormActive" 
-          label-width="auto"
+          label-width="auto" :rules="rules"
         >
           <el-form-item prop="username" label="用户名">
             <el-input v-model="user.username"/>
@@ -44,12 +44,24 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { uploadService } from '@/api/oss'
 import { userSelfGetService, userUpdateService } from '@/api/user'
+import { validateUsername, validateEmail } from '@/utils/validate'
 
 const loading = ref(true)
 const userStore = useUserStore()
 const user = ref({})
 const userFormRef = useTemplateRef('userFormRef')
 const userFormActive = ref(false)
+
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { validator: validateUsername, trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: '请输入电子邮箱', trigger: 'blur' },
+    { validator: validateEmail, trigger: 'blur' }
+  ]
+}
 
 const uploadFile = async (options) => {
   let file = options.file
@@ -62,14 +74,21 @@ const onUploadSuccess = (resp) => {
 }
 
 const submitUser = async (user) => {
-  await userUpdateService(user)
-    .then(() => {
+  let isValid
+  try {
+    isValid = await userFormRef.value.validate()
+  } catch (error) {
+    ElMessage.warning('请正确填写用户信息')
+  }
+  console.debug(isValid)
+  if (isValid) {
+    try {
+      await userUpdateService(user)
       ElMessage.success('更新成功')
-    })
-    .catch((error) => {
-      console.log(error)
+    } catch (error) {
       ElMessage.error('更新失败')
-    })
+    }
+  }
 }
 
 onBeforeMount(async () => {

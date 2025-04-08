@@ -2,8 +2,9 @@
   <Manage name="分类" menu-code="categoryMgr" :fullscreen-dialog="false"
     :table-data="categories" :total="total" :item="category"
     :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
-    :get-items="getCategories" :add-item="addCategory"
-    :update-item="updateCategory" :delete-items="deleteCategoires"
+    :get-items="getCategories" :add-item="categoryAddService"
+    :update-item="categoryUpdateService" :delete-items="categoryDeleteService"
+    :beforeSubmitItem="validateCategoryForm"
   >
     <template #tableColumns>
       <el-table-column prop="name" label="名称"/>
@@ -37,6 +38,7 @@
 
 <script setup>
 import { ref, useTemplateRef } from 'vue'
+import { ElMessage } from 'element-plus'
 import Manage from '@/components/Manage.vue'
 import {
   categoryListService, categoryGetService, categoryAddService,
@@ -84,16 +86,13 @@ const getCategories = async (params) => {
   total.value = result.data.total
 }
 
-const addCategory = async (category) => {
-  await categoryAddService(category)
-}
-
-const updateCategory = async (category) => {
-  await categoryUpdateService(category)
-}
-
-const deleteCategoires = async (ids) => {
-  await categoryDeleteService(ids)
+const validateCategoryForm = async () => {
+  return await categoryFormRef.value.validate((isValid, invalidFields) => {
+    if (!isValid) {
+      console.debug('invalid fields', invalidFields)
+      ElMessage.warning('请正确填写分类信息')
+    }
+  })
 }
 
 </script>
