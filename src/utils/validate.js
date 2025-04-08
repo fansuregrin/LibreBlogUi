@@ -18,7 +18,7 @@ export const validateEmail = (rule, value, callback) => {
 }
 
 export const validateUsername = (rule, value, callback) => {
-  console.log(`type of ${value}: ${typeof value}`)
+  console.debug(`type of ${value}: ${typeof value}`)
   if (value.length < 4) {
     callback(new Error('用户名长度不能少于4个字符'))
   }

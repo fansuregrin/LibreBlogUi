@@ -46,7 +46,7 @@
           </el-form-item>
           <el-row justify="space-between">
             <el-col :span="12">
-              <el-checkbox>记住密码</el-checkbox>
+              <el-checkbox v-model="rememberPasword">记住密码</el-checkbox>
             </el-col>
             <el-col :span="12" class="text-right">
               <el-link type="primary">忘记密码?</el-link>
@@ -165,31 +165,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, useTemplateRef, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock, Message, ChatDotRound, Cellphone, Avatar } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { validatePassword, validateEmail } from '@/utils/validate'
-import { userLoginService, userRegisterService, userSelfGetService } from '@/api/user'
-import { useTokenStore } from '@/stores/token'
-import { useUserStore } from '@/stores/user'
 import { AxiosError } from 'axios'
+import { Base64 } from 'js-base64'
+import { validateUsername, validatePassword, validateEmail } from '@/utils/validate'
+import { userLoginService, userRegisterService } from '@/api/user'
+import { useTokenStore } from '@/stores/token'
+import { useLoginDataStore } from '@/stores/login'
 
 const router = useRouter()
 const tokenStore = useTokenStore()
-const userStore = useUserStore()
+const loginDataStore = useLoginDataStore()
 
 const activeTab = ref('login')
 const loading = ref(false)
+const rememberPasword = ref(false)
 
-const loginFormRef = ref(null)
+const loginFormRef = useTemplateRef('loginFormRef')
 const loginData = ref({
   username: '',
   password: '',
   confirmPassword: ''
 })
 
-const registerFormRef = ref(null)
+const registerFormRef = useTemplateRef('registerFormRef')
 const registerData = ref({
   username: '',
   password: '',
@@ -213,7 +215,7 @@ const validateConfirmPassword = (rule, value, callback) => {
 const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 4, max: 16, message: '长度仅限 4~16 个字符', trigger: 'blur' }
+    { validator: validateUsername, trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -229,41 +231,73 @@ const rules = {
 }
 
 const login = async () => {
-  try {
-    loading.value = true
-    await loginFormRef.value.validate()
-    let result = await userLoginService(loginData.value)
-    ElMessage.success(result.msg ? result.msg : '登录成功')
-    tokenStore.setToken(result.data)
-    result = await userSelfGetService()
-    userStore.setUser(result.data)
-    router.push('/admin')
-  } catch (error) {
-    // console.log(error)
-    if (error instanceof AxiosError) {
-      ElMessage.warning(error.response.data.msg)
-    } else {
-      ElMessage.warning('请正确填写登录信息')
-    }
-  } finally {
-    loading.value = false
-  }
+  loading.value = true
+
+  await loginFormRef.value.validate()
+  .then(async () => {
+    await userLoginService(loginData.value)
+    .then(async result => {
+      ElMessage.success('登录成功')
+      tokenStore.setToken(result.data)
+      if (rememberPasword.value) {
+        let data = Base64.encode(JSON.stringify(loginData.value))
+        loginDataStore.setLoginData(data)
+      } else {
+        loginDataStore.removeLoginData()
+      }
+      router.push('/admin')
+    })
+    .catch(error => {
+      console.debug(error)
+      if (error instanceof AxiosError) {
+        console.debug(error.response.data.msg)
+        ElMessage.error('用户名或密码错误')
+      }
+    })
+  })
+  .catch(error => {
+    console.debug(error)
+    ElMessage.warning('请正确填写登录信息')
+  })
+
+  loading.value = false
 }
 
 const register = async () => {
-  try {
-    loading.value = true
-    await registerFormRef.value.validate()
-    let result = await userRegisterService(registerData.value)
-    ElMessage.success(result.msg ? result.msg : '注册成功')
-    activeTab.value = 'login'
-  } catch (error) {
-    console.log(error)
+  loading.value = true
+
+  await registerFormRef.value.validate()
+  .then(async () => {
+    await userRegisterService(registerData.value)
+      .then(() => {
+        ElMessage.success('注册成功')
+        activeTab.value = 'login'
+      })
+      .catch(error => {
+        console.debug(error)
+        ElMessage.error('注册失败')
+      })
+  })
+  .catch(error => {
+    console.debug('validate register form', error)
     ElMessage.warning('请正确填写注册信息')
-  } finally {
-    loading.value = false
-  }
+  })
+
+  loading.value = false
 }
+
+onMounted(() => {
+  let storedLoginData = loginDataStore.loginData
+  if (storedLoginData) {
+    try {
+      let loginData_ = JSON.parse(Base64.decode(storedLoginData))
+      loginData.value = loginData_
+      rememberPasword.value = true
+    } catch (error) {
+      console.debug(error)
+    }
+  }
+})
 </script>
 
 <style scoped>
