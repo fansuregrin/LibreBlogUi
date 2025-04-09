@@ -20,6 +20,10 @@ export const userLogoutService = () => {
   return request.get('/logout')
 }
 
+export const userCaptchaService = () => {
+  return request.get('/captcha')
+}
+
 export const userGetService = (id) => {
   return request.get(`/users/${id}`)
 }

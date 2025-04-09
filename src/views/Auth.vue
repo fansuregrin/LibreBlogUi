@@ -44,6 +44,13 @@
               show-password
             />
           </el-form-item>
+          <el-form-item prop="verifyCode">
+            <el-space>
+              <el-input :prefix-icon="Key" v-model="loginData.verifyCode" placeholder="请输入验证码"/>
+              <el-image v-loading="captchaObj.loading" :src="captchaObj.captcha"/>
+              <el-button :icon="Refresh" text @click="getCaptcha()" style="padding: 0;">换一张？</el-button>
+            </el-space>
+          </el-form-item>
           <el-row justify="space-between">
             <el-col :span="12">
               <el-checkbox v-model="rememberPasword">记住密码</el-checkbox>
@@ -165,12 +172,15 @@
 <script setup>
 import { ref, useTemplateRef, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Message, ChatDotRound, Cellphone, Avatar } from '@element-plus/icons-vue'
+import {
+  User, Lock, Message, ChatDotRound, Cellphone, Avatar, Refresh,
+  Key
+} from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios'
 import { Base64 } from 'js-base64'
 import { validateUsername, validatePassword, validateEmail } from '@/utils/validate'
-import { userLoginService, userRegisterService } from '@/api/user'
+import { userLoginService, userRegisterService, userCaptchaService } from '@/api/user'
 import { useTokenStore } from '@/stores/token'
 import { useLoginDataStore } from '@/stores/login'
 
@@ -180,12 +190,18 @@ const loginDataStore = useLoginDataStore()
 
 const activeTab = ref('login')
 const rememberPasword = ref(false)
+const captchaObj = ref({
+  loading: true,
+  captcha: ''
+})
 
 const loginFormRef = useTemplateRef('loginFormRef')
 const loginData = ref({
   username: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  uuid: '',
+  verifyCode: ''
 })
 
 const registerFormRef = useTemplateRef('registerFormRef')
@@ -224,6 +240,9 @@ const rules = {
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
     { validator: validateEmail, trigger: 'blur' }
+  ],
+  verifyCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' }
   ]
 }
 
@@ -243,7 +262,12 @@ const login = async () => {
     tokenStore.setToken(result.data)
 
     if (rememberPasword.value) {
-      let data = Base64.encode(JSON.stringify(loginData.value))
+      let loginData_ = {
+        username: loginData.value.username,
+        password: loginData.value.password,
+        confirmPassword: loginData.value.confirmPassword
+      }
+      let data = Base64.encode(JSON.stringify(loginData_))
       loginDataStore.setLoginData(data)
     } else {
       loginDataStore.removeLoginData()
@@ -288,11 +312,24 @@ const register = async () => {
   }
 }
 
+const getCaptcha = async () => {
+  captchaObj.value.loading = true
+  try {
+    let result = await userCaptchaService()
+    captchaObj.value.captcha = result.data.captcha
+    loginData.value.uuid = result.data.uuid
+    captchaObj.value.loading = false
+  } catch (error) {
+    ElMessage.error('获取验证码失败')
+  }
+}
+
 onMounted(() => {
   if (tokenStore.token) {
     router.push('/admin')
     return
   }
+  getCaptcha()
   let storedLoginData = loginDataStore.loginData
   if (storedLoginData) {
     try {
