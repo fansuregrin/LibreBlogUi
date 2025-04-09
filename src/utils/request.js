@@ -18,8 +18,10 @@ instance.interceptors.response.use(
   },
   error => {
     const response = error.response
+    const tokenStore = useTokenStore()
     if (response.status === 401) {
-      console.debug(response.data.msg)
+      console.debug(response.data?.msg)
+      tokenStore.removeToken()
       ElMessage.error('请先登录')
       router.push('/auth')
     }
