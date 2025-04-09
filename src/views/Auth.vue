@@ -56,7 +56,6 @@
             <el-button
               type="primary"
               class="auth-btn"
-              :loading="loading"
               @click="login"
             >
               立即登录
@@ -143,7 +142,6 @@
               type="primary" 
               class="auth-btn"
               @click="register"
-              :loading="loading"
             >
               立即注册
             </el-button>
@@ -181,7 +179,6 @@ const tokenStore = useTokenStore()
 const loginDataStore = useLoginDataStore()
 
 const activeTab = ref('login')
-const loading = ref(false)
 const rememberPasword = ref(false)
 
 const loginFormRef = useTemplateRef('loginFormRef')
@@ -231,62 +228,69 @@ const rules = {
 }
 
 const login = async () => {
-  loading.value = true
-
-  await loginFormRef.value.validate()
-  .then(async () => {
-    await userLoginService(loginData.value)
-    .then(async result => {
-      ElMessage.success('登录成功')
-      tokenStore.setToken(result.data)
-      if (rememberPasword.value) {
-        let data = Base64.encode(JSON.stringify(loginData.value))
-        loginDataStore.setLoginData(data)
-      } else {
-        loginDataStore.removeLoginData()
-      }
-      router.push('/admin')
-    })
-    .catch(error => {
-      console.debug(error)
-      if (error instanceof AxiosError) {
-        console.debug(error.response.data.msg)
-        ElMessage.error('用户名或密码错误')
-      }
-    })
-  })
-  .catch(error => {
-    console.debug(error)
+  let isValid = false
+  try {
+    isValid = await loginFormRef.value.validate()
+  } catch (error) {
+    console.debug('validate login form', error)
     ElMessage.warning('请正确填写登录信息')
-  })
+  }
+  if (!isValid) return;
 
-  loading.value = false
+  try {
+    let result = await userLoginService(loginData.value)
+    ElMessage.success('登录成功')
+    tokenStore.setToken(result.data)
+
+    if (rememberPasword.value) {
+      let data = Base64.encode(JSON.stringify(loginData.value))
+      loginDataStore.setLoginData(data)
+    } else {
+      loginDataStore.removeLoginData()
+    }
+    router.push('/admin')
+  } catch (error) {
+    console.debug(error)
+    if (error instanceof AxiosError) {
+      console.debug(error.response.data?.msg)
+      ElMessage.error('用户名或密码错误')
+    }
+  }
 }
 
 const register = async () => {
-  loading.value = true
-
-  await registerFormRef.value.validate()
-  .then(async () => {
-    await userRegisterService(registerData.value)
-      .then(() => {
-        ElMessage.success('注册成功')
-        activeTab.value = 'login'
-      })
-      .catch(error => {
-        console.debug(error)
-        ElMessage.error('注册失败')
-      })
-  })
-  .catch(error => {
+  let isValid = false
+  try {
+    isValid = await registerFormRef.value.validate()
+  } catch (error) {
     console.debug('validate register form', error)
     ElMessage.warning('请正确填写注册信息')
-  })
+  }
+  if (!isValid) return
 
-  loading.value = false
+  try {
+    await userRegisterService(registerData.value)
+    ElMessage.success('注册成功')
+    activeTab.value = 'login'
+    loginDataStore.removeLoginData()
+    loginFormRef.value.resetFields()
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.debug(error.response.data?.msg)
+      if (error.response.status === 409) {
+        ElMessage.error('用户名被占用')
+      } else {
+        ElMessage.error('注册失败')
+      }
+    }
+  }
 }
 
 onMounted(() => {
+  if (tokenStore.token) {
+    router.push('/admin')
+    return
+  }
   let storedLoginData = loginDataStore.loginData
   if (storedLoginData) {
     try {
