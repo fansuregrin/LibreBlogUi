@@ -47,8 +47,12 @@
           <el-form-item prop="verifyCode">
             <el-space>
               <el-input :prefix-icon="Key" v-model="loginData.verifyCode" placeholder="请输入验证码"/>
-              <el-image v-loading="captchaObj.loading" :src="captchaObj.captcha"/>
-              <el-button :icon="Refresh" text @click="getCaptcha()" style="padding: 0;">换一张？</el-button>
+              <el-image class="captcha" v-loading="captchaObj.loading" 
+                :src="captchaObj.captcha"
+              />
+              <el-button :icon="Refresh" text @click="getCaptcha()" style="padding: 0;">
+                换一张？
+              </el-button>
             </el-space>
           </el-form-item>
           <el-row justify="space-between">
@@ -143,6 +147,19 @@
             />
           </el-form-item>
 
+          <!-- 验证码 -->
+          <el-form-item prop="verifyCode">
+            <el-space>
+              <el-input :prefix-icon="Key" v-model="registerData.verifyCode" placeholder="请输入验证码"/>
+              <el-image class="captcha" v-loading="captchaObj.loading" 
+                :src="captchaObj.captcha"
+              />
+              <el-button :icon="Refresh" text @click="getCaptcha()" style="padding: 0;">
+                换一张？
+              </el-button>
+            </el-space>
+          </el-form-item>
+
           <!-- 提交按钮 -->
           <el-form-item>
             <el-button 
@@ -170,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, onMounted } from 'vue'
+import { ref, useTemplateRef, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   User, Lock, Message, ChatDotRound, Cellphone, Avatar, Refresh,
@@ -210,7 +227,9 @@ const registerData = ref({
   password: '',
   confirmPassword: '',
   email: '',
-  realname: ''
+  realname: '',
+  uuid: '',
+  verifyCode: ''
 })
 
 const validateConfirmPassword = (rule, value, callback) => {
@@ -317,12 +336,20 @@ const getCaptcha = async () => {
   try {
     let result = await userCaptchaService()
     captchaObj.value.captcha = result.data.captcha
-    loginData.value.uuid = result.data.uuid
+    if (activeTab.value === 'login') {
+      loginData.value.uuid = result.data.uuid
+    } else {
+      registerData.value.uuid = result.data.uuid
+    }
     captchaObj.value.loading = false
   } catch (error) {
     ElMessage.error('获取验证码失败')
   }
 }
+
+watch(activeTab, async (value) => {
+  await getCaptcha()
+})
 
 onMounted(() => {
   if (tokenStore.token) {
@@ -427,6 +454,10 @@ onMounted(() => {
 
 .text-right {
   text-align: right;
+}
+
+.captcha {
+  --el-loading-spinner-size: 20px
 }
 
 @media (max-width: 768px) {
