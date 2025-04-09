@@ -270,9 +270,11 @@ const register = async () => {
 
   try {
     await userRegisterService(registerData.value)
+    registerData.value = {}
     ElMessage.success('注册成功')
     activeTab.value = 'login'
     loginDataStore.removeLoginData()
+    loginData.value = {}
     loginFormRef.value.resetFields()
   } catch (error) {
     if (error instanceof AxiosError) {
