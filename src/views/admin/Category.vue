@@ -87,12 +87,13 @@ const getCategories = async (params) => {
 }
 
 const validateCategoryForm = async () => {
-  return await categoryFormRef.value.validate((isValid, invalidFields) => {
-    if (!isValid) {
-      console.debug('invalid fields', invalidFields)
-      ElMessage.warning('请正确填写分类信息')
-    }
-  })
+  try {
+    await categoryFormRef.value.validate()
+    return true
+  } catch (error) {
+    ElMessage.warning('请正确填写分类信息')
+    return false
+  }
 }
 
 </script>

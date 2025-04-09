@@ -4,6 +4,7 @@
     :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
     :get-items="getTags" :add-item="addTag"
     :update-item="updateTag" :delete-items="deleteTags"
+    :before-submit-item="validateTagForm"
   >
     <template #tableColumns>
       <el-table-column prop="name" label="名称"/>
@@ -68,9 +69,13 @@ const onCreate = () => {
 
 const onEdit = async (row) => {
   tagLoading.value = true
-  let result = await tagGetService(row.id)
-  tag.value = result.data
-  tagLoading.value = false
+  try {
+    let result = await tagGetService(row.id)
+    tag.value = result.data
+    tagLoading.value = false
+  } catch (error) {
+    ElMessage.error('获取标签失败')
+  }
 }
 
 const onDialogClose = () => {
@@ -80,9 +85,13 @@ const onDialogClose = () => {
 }
 
 const getTags = async (params) => {
-  let result = await tagListService(params)
-  tags.value = result.data.items
-  total.value = result.data.total
+  try {
+    let result = await tagListService(params)
+    tags.value = result.data.items
+    total.value = result.data.total
+  } catch (error) {
+    ElMessage.error('获取标签列表失败')
+  }
 }
 
 const addTag = async (tag) => {
@@ -97,4 +106,13 @@ const deleteTags = async (ids) => {
   await tagDeleteService(ids)
 }
 
+const validateTagForm = async () => {
+  try {
+    await tagFormRef.value.validate()
+    return true
+  } catch (error) {
+    ElMessage.warning('请正确填写标签信息')
+    return false
+  }
+}
 </script>

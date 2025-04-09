@@ -4,7 +4,7 @@
     :on-edit="onEdit" :on-create="onCreate" :on-dialog-close="onDialogClose"
     :get-items="getUsers" :add-item="addUser"
     :update-item="updateUser" :delete-items="deleteUsers"
-    :check-data-scope="checkDataScope"
+    :check-data-scope="checkDataScope" :before-submit-item="validateUserForm"
   >
     <template #tableColumns>
       <el-table-column prop="username" label="用户名"/>
@@ -69,6 +69,7 @@
 
 <script setup>
 import { ref, reactive, useTemplateRef } from 'vue'
+import { AxiosError } from 'axios'
 import { ElMessage } from 'element-plus'
 import Manage from '@/components/Manage.vue'
 import { formatDateTime } from '@/utils/date'
@@ -103,12 +104,19 @@ const onCreate = () => {
 
 const onEdit = async (row) => {
   userLoading.value = true
-  let result = await userGetService(row.id)
-  user.value = result.data
-  roles.value = [result.data.role]
-  rules.value = rulesUpdate
-  passwordFormItem.value = false
-  userLoading.value = false
+  try {
+    let result = await userGetService(row.id)
+    user.value = result.data
+    roles.value = [result.data.role]
+    rules.value = rulesUpdate
+    passwordFormItem.value = false
+    userLoading.value = false
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.debug(error.response.data?.msg)
+    }
+    ElMessage.error('获取用户失败')
+  }
 }
 
 const onDialogClose = () => {
@@ -146,9 +154,13 @@ const rulesUpdate = {
 }
 
 const getUsers = async (params) => {
-  let result = await userListService(params)
-  users.value = result.data.items
-  total.value = result.data.total
+  try {
+    let result = await userListService(params)
+    users.value = result.data.items
+    total.value = result.data.total
+  } catch (error) {
+    ElMessage.error('获取用户列表失败')
+  }
 }
 
 const addUser = async (user) => {
@@ -168,9 +180,13 @@ const getRoles = async () => {
     page: rolePagination.page,
     pageSize: rolePagination.pageSize
   }
-  let result = await roleListService(params)
-  roles.value = result.data.items
-  rolePagination.total = result.data.total
+  try {
+    let result = await roleListService(params)
+    roles.value = result.data.items
+    rolePagination.total = result.data.total
+  } catch (error) {
+    ElMessage.error('获取角色列表失败')
+  }
 }
 
 const onRoleSelectVisibleChange = async (visible) => {
@@ -185,4 +201,13 @@ const onPageChangeRole = async () => {
   await getRoles()
 }
 
+const validateUserForm = async () => {
+  try {
+    await userFormRef.value.validate()
+    return true
+  } catch (error) {
+    ElMessage.warning('请正确填写用户信息')
+    return false
+  }
+}
 </script>

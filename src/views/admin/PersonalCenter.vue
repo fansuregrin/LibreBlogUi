@@ -80,7 +80,6 @@ const submitUser = async (user) => {
   } catch (error) {
     ElMessage.warning('请正确填写用户信息')
   }
-  console.debug(isValid)
   if (isValid) {
     try {
       await userUpdateService(user)
