@@ -295,8 +295,7 @@ const login = async () => {
   } catch (error) {
     console.debug(error)
     if (error instanceof AxiosError) {
-      console.debug(error.response.data?.msg)
-      ElMessage.error('用户名或密码错误')
+      ElMessage.error(error.response.data.msg)
     }
   }
 }
@@ -325,7 +324,7 @@ const register = async () => {
       if (error.response.status === 409) {
         ElMessage.error('用户名被占用')
       } else {
-        ElMessage.error('注册失败')
+        ElMessage.error(error.response.data.msg)
       }
     }
   }
