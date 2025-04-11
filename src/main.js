@@ -1,5 +1,6 @@
 import '@/assets/main.css'
 import 'element-plus/dist/index.css'
+import 'default-passive-events'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'

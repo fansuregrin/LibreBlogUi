@@ -1,5 +1,5 @@
 <template>
-  <el-space wrap>
+  <el-space wrap alignment="start">
     <el-card>
       <el-descriptions border title="个人信息" :column="1" size="large">
         <template #extra>
@@ -12,6 +12,15 @@
         <el-descriptions-item label="姓名" label-align="right">{{ user.realname }}</el-descriptions-item>
         <el-descriptions-item label="电子邮箱" label-align="right">{{ user.email }}</el-descriptions-item>
       </el-descriptions>
+    </el-card>
+    <el-card ref="statsCardRef">
+      <el-descriptions title="统计信息" border :column="2">
+        <el-descriptions-item label="文章总数">{{ stats.articleCount }}</el-descriptions-item>
+        <el-descriptions-item label="用户总数">{{ stats.userCount }}</el-descriptions-item>
+        <el-descriptions-item label="分类总数">{{ stats.categoryCount }}</el-descriptions-item>
+        <el-descriptions-item label="标签总数">{{ stats.tagCount }}</el-descriptions-item>
+      </el-descriptions>
+      <div id="article-count-by-category"></div>
     </el-card>
   </el-space>
   <el-dialog v-model="dialog.visible" :width="dialog.width" title="更新个人信息">
@@ -38,16 +47,18 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef, onBeforeMount, watch } from 'vue'
-import { useWindowSize } from '@vueuse/core'
+import { ref, useTemplateRef, onBeforeMount, onMounted, watch } from 'vue'
+import { useWindowSize, useElementSize } from '@vueuse/core'
 import { Edit } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import * as echarts from 'echarts'
 import { useUserStore } from '@/stores/user'
 import { uploadService } from '@/api/oss'
 import { userSelfGetService, userUpdateService } from '@/api/user'
+import { categoryArticleCountService } from '@/api/category'
 import { validateUsername, validateEmail } from '@/utils/validate'
 
-const { width } = useWindowSize()
+const { width, height } = useWindowSize()
 
 const loading = ref(true)
 const userStore = useUserStore()
@@ -57,6 +68,10 @@ const dialog = ref({
   visible: false,
   width: '50%'
 })
+const statsCardRef = useTemplateRef('statsCardRef')
+const statsCardSize = useElementSize(statsCardRef)
+const stats = ref({})
+const categoryArticleCount = ref([])
 
 const rules = {
   username: [
@@ -106,6 +121,34 @@ const submitUser = async () => {
   }
 }
 
+const drawArticleCountByCategoryChart = async () => {
+  let result = await categoryArticleCountService()
+  categoryArticleCount.value = result.data
+  let articleCountByCategroyChart = echarts.init(
+    document.getElementById('article-count-by-category'), null, {
+      width: 300,
+      height: 200
+    })
+  let pieData = categoryArticleCount.value.map(item => ({
+    name: item.categoryName,
+    value: item.articleNum
+  }))
+  articleCountByCategroyChart.setOption({
+    title: { text: '分类下的文章数量', textStyle: { fontSize: 15 } },
+    series: [
+      {
+        type: 'pie',
+        data: pieData,
+        label: { position: 'inside', formatter: '{b} {d}%' }
+      }
+    ]
+  })
+}
+
+onMounted(() => {
+  drawArticleCountByCategoryChart()
+})
+
 onBeforeMount(async () => {
   screeAdaptation(width.value)
   loading.value = true
@@ -125,4 +168,7 @@ onBeforeMount(async () => {
   }
 }
 
+#article-count-by-category {
+  margin: 15px auto;
+}
 </style>

@@ -32,3 +32,7 @@ export const categoryDeleteService = (ids) => {
     data: ids
   })
 }
+
+export const categoryArticleCountService = () => {
+  return request.get('/admin/categories/article-count')
+}
