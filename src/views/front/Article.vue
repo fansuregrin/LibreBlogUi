@@ -20,11 +20,13 @@
               {{ article.category.name }}
             </router-link>
           </el-text>
-          <el-tag v-for="tag in article.tags" :key="tag" type="info" 
-            size="small" @click="router.push(`/tag/${tag.slug}`)"
-          >
-            {{ tag.name }}
-          </el-tag>
+          <span>
+            <el-tag v-for="tag in article.tags" :key="tag" type="info" 
+              size="small" @click="router.push(`/tag/${tag.slug}`)"
+            >
+              {{ tag.name }}
+            </el-tag>
+          </span>
         </div>
       </template>
       <MdPreview :modelValue="article.content" />

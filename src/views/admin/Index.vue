@@ -19,6 +19,7 @@
         <el-descriptions-item label="用户总数">{{ stats.userCount }}</el-descriptions-item>
         <el-descriptions-item label="分类总数">{{ stats.categoryCount }}</el-descriptions-item>
         <el-descriptions-item label="标签总数">{{ stats.tagCount }}</el-descriptions-item>
+        <el-descriptions-item label="在线用户">{{ stats.onlineUserCount }}</el-descriptions-item>
       </el-descriptions>
       <div id="article-count-by-category"></div>
     </el-card>
@@ -56,6 +57,7 @@ import { useUserStore } from '@/stores/user'
 import { uploadService } from '@/api/oss'
 import { userSelfGetService, userUpdateService } from '@/api/user'
 import { categoryArticleCountService } from '@/api/category'
+import { dashboardStatsService } from '@/api/dashboard'
 import { validateUsername, validateEmail } from '@/utils/validate'
 
 const { width, height } = useWindowSize()
@@ -122,8 +124,12 @@ const submitUser = async () => {
 }
 
 const drawArticleCountByCategoryChart = async () => {
-  let result = await categoryArticleCountService()
-  categoryArticleCount.value = result.data
+  try {
+    let result = await categoryArticleCountService()
+    categoryArticleCount.value = result.data
+  } catch (error) {
+    return
+  }
   let articleCountByCategroyChart = echarts.init(
     document.getElementById('article-count-by-category'), null, {
       width: 300,
@@ -152,10 +158,16 @@ onMounted(() => {
 onBeforeMount(async () => {
   screeAdaptation(width.value)
   loading.value = true
-  let result = await userSelfGetService()
-  user.value = result.data
-  userStore.setUser(user.value)
-  loading.value = false
+  try {
+    let result = await userSelfGetService()
+    user.value = result.data
+    userStore.setUser(user.value)
+    result = await dashboardStatsService()
+    stats.value = result.data
+    loading.value = false
+  } catch (error) {
+    console.debug(error)
+  }
 })
 
 </script>
